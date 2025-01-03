@@ -1,54 +1,5 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>NanBurbujas</title>
-    <style>
-        body {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-            height: 100vh;
-            margin: 0;
-            overflow-y: scroll;
-        }
-        .burbuja {
-            width: 60px;
-            height: 60px;
-            margin: 10px;
-            cursor: pointer;
-        }
-        .burbuja img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-    </style>
-</head>
-<body>
-    <!-- Generamos 60 burbujas -->
-    <script>
-        for (let i = 0; i < 60; i++) {
-            document.write(`
-                <div class="burbuja" onclick="explotar(this)">
-                    <img src="Burbujas.png" alt="Burbuja">
-                </div>
-            `);
-        }
-    </script>
-
-    <script>
-        function explotar(elemento) {
-            elemento.style.visibility = "hidden"; // Esconde la burbuja
-            // Reproduce el sonido al explotar
-            var sonido = new Audio('Pop.mp3');
-            sonido.play();
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html>
 
 <head>
   <meta charset="UTF-8">
@@ -60,4 +11,127 @@
 
 </body>
 
+</html><!DOCTYPE html>
+<html>
+<head>
+    <title>Simulador de Burbujas</title>
+    <style>
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .burbuja {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            cursor: pointer;
+            animation: movimiento 3s infinite ease-in-out;
+        }
+        .burbuja img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #contador {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            z-index: 1000;
+        }
+        #final {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: white;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 10px;
+        }
+        @keyframes movimiento {
+            0%, 100% {
+                transform: translateY(-20px) translateX(-20px);
+            }
+            50% {
+                transform: translateY(20px) translateX(20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="contador">Burbujas explotadas: 0 / 60</div>
+    <div id="final">¡Felicidades! Has explotado todas las burbujas.</div>
+
+    <script>
+        const totalBurbujas = 60;
+        let burbujasExplotadas = 0;
+
+        // Generar 60 burbujas
+        for (let i = 0; i < totalBurbujas; i++) {
+            const burbuja = document.createElement('div');
+            burbuja.className = 'burbuja';
+            burbuja.innerHTML = `<img src="Burbujas.png" alt="Burbuja">`;
+
+            // Posicionar burbujas aleatoriamente
+            burbuja.style.top = Math.random() * 90 + "vh";
+            burbuja.style.left = Math.random() * 90 + "vw";
+
+            // Agregar evento para explotar burbuja
+            burbuja.addEventListener('click', function () {
+                explotar(burbuja);
+            });
+
+            document.body.appendChild(burbuja);
+        }
+
+        function explotar(burbuja) {
+            burbuja.style.visibility = "hidden";
+            burbuja.style.pointerEvents = "none";
+
+            // Reproduce el sonido pop
+            var sonido = new Audio('pop.mp3');
+            sonido.play();
+
+            // Incrementa el contador
+            burbujasExplotadas++;
+            document.getElementById('contador').innerText = `Burbujas explotadas: ${burbujasExplotadas} / ${totalBurbujas}`;
+
+            // Si explotan todas las burbujas, mostrar mensaje final
+            if (burbujasExplotadas === totalBurbujas) {
+                mostrarMensajeFinal();
+            }
+        }
+
+        function mostrarMensajeFinal() {
+            const mensajeFinal = document.getElementById('final');
+            mensajeFinal.style.display = 'block';
+
+            // Agregar animación al mensaje final
+            mensajeFinal.innerHTML = '🎉 ¡Felicidades! Has explotado todas las burbujas. 🎉';
+            setTimeout(() => {
+                mensajeFinal.innerHTML = '🎊 ¿Listo para jugar otra vez? 🎊';
+            }, 3000);
+
+            // Reiniciar el juego después de 5 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+    </script>
+</body>
 </html>
