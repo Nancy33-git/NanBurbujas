@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+
+</body>
+
+</html><!DOCTYPE html>
+<html>
+<head>
+    <title>BubbleMania</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+            text-align: center;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 3px solid white;
+        }
+        #score, #level {
+            position: absolute;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 5px black;
+        }
+        #score {
+            top: 10px;
+            left: 10px;
+        }
+        #level {
+            top: 10px;
+            right: 10px;
+        }
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        #startScreen h1 {
+            font-size: 50px;
+            margin: 0;
+            animation: fadeIn 2s ease-in-out;
+        }
+        #startScreen button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            animation: fadeIn 4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>BubbleMania</h1>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    <div id="score" style="display: none;">Puntaje: 0</div>
+    <div id="level" style="display: none;">Nivel: 1</div>
+    <canvas id="gameCanvas" style="display: none;"></canvas>
+
+    <!-- Sonidos -->
+    <audio id="backgroundMusic" loop>
+        <source src="song.mp3" type="audio/mp3">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+    <audio id="popSound">
+        <source src="pop.mp3" type="audio/mp3">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Configuración del canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Cargar recursos
+        const backgroundImage = new Image();
+        backgroundImage.src = "jugador.png";
+        const bubbleImage = new Image();
+        bubbleImage.src = "burble.png";
+
+        // Variables del juego
+        let score = 0;
+        let level = 1;
+        let bubbleSpeed = 2;
+        let bubbleSpawnRate = 500; // Intervalo de aparición de burbujas más rápido
+        let bubbleSize = 60;  // Tamaño inicial de las burbujas
+        const bubbles = [];
+        let levelUpTimeout;
+
+        // Cargar sonidos
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const popSound = document.getElementById('popSound');
+        backgroundMusic.volume = 0.3;
+
+        // Función para iniciar el juego
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('score').style.display = 'block';
+            document.getElementById('level').style.display = 'block';
+            canvas.style.display = 'block';
+            backgroundMusic.play();
+            createBubble();
+            gameLoop();
+            setInterval(createBubble, bubbleSpawnRate); // Crear burbujas a intervalos regulares
+        }
+
+        // Crear burbujas
+        function createBubble() {
+            const bubble = {
+                x: Math.random() * (canvas.width - bubbleSize) + bubbleSize / 2,
+                y: Math.random() * canvas.height / 3,
+                speed: bubbleSpeed + Math.random(),
+                visible: true,
+            };
+            bubbles.push(bubble);
+        }
+
+        // Dibujar burbujas
+        function drawBubbles() {
+            bubbles.forEach((bubble) => {
+                if (bubble.visible) {
+                    ctx.drawImage(
+                        bubbleImage,
+                        bubble.x - bubbleSize / 2,
+                        bubble.y - bubbleSize / 2,
+                        bubbleSize,
+                        bubbleSize
+                    );
+                }
+            });
+        }
+
+        // Mover burbujas
+        function moveBubbles() {
+            bubbles.forEach((bubble) => {
+                bubble.y += bubble.speed;
+
+                // Si las burbujas salen del canvas, se reinician arriba
+                if (bubble.y - bubbleSize / 2 > canvas.height) {
+                    bubble.y = -bubbleSize / 2;
+                    bubble.x = Math.random() * (canvas.width - bubbleSize) + bubbleSize / 2;
+                }
+            });
+        }
+
+        // Detectar clics en burbujas
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            bubbles.forEach((bubble, index) => {
+                const dist = Math.sqrt((mouseX - bubble.x) ** 2 + (mouseY - bubble.y) ** 2);
+                if (dist < bubbleSize / 2 && bubble.visible) {
+                    bubble.visible = false;
+                    score += 10;
+                    document.getElementById('score').innerText = `Puntaje: ${score}`;
+                    popSound.play();
+                    checkLevelUp();
+                }
+            });
+        });
+
+        // Verificar subida de nivel
+        function checkLevelUp() {
+            if (score % 100 === 0) {
+                level++;
+                document.getElementById('level').innerText = `Nivel: ${level}`;
+                bubbleSize += 10; // Incrementar el tamaño de las burbujas
+                bubbleSpeed += 0.5; // Incrementar la velocidad de las burbujas
+                bubbleSpawnRate = Math.max(200, bubbleSpawnRate - 50); // Reducir el intervalo de aparición
+            }
+        }
+
+        // Bucle del juego
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBubbles();
+            moveBubbles();
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
